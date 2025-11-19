@@ -1,0 +1,811 @@
+import { useState, useEffect } from 'react';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale/fr';
+import { api } from '@/lib/api';
+import { demoDentist } from '@/lib/mock-data';
+import { Service } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CalendarScheduler } from '@/components/ui/calendar-scheduler';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { toast } from 'sonner';
+import {
+  Calendar as CalendarIcon,
+  User,
+  CheckCircle2,
+  Sparkles,
+  Stethoscope,
+  Check,
+  ChevronRight,
+  Star,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface TimeSlot {
+  time: string;
+  capacity: number;
+  remaining: number;
+  isAvailable: boolean;
+}
+
+interface BookingData {
+  service: Service | null;
+  date: Date | null;
+  timeSlot: TimeSlot | null;
+  patientName: string;
+  patientPhone: string;
+  patientEmail: string;
+  notes: string;
+  saveInfo: boolean;
+  appointmentId?: string | null;
+}
+
+const STEPS = [
+  { id: 1, name: 'Service', icon: Stethoscope },
+  { id: 2, name: 'Date & Heure', icon: CalendarIcon },
+  { id: 3, name: 'Détails', icon: User },
+  { id: 4, name: 'Confirmation', icon: CheckCircle2 },
+  { id: 5, name: 'Succès', icon: CheckCircle2 },
+];
+
+// (time formatting handled inline where needed)
+
+export default function BookingWizard() {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  
+  const [booking, setBooking] = useState<BookingData>({
+    service: null,
+    date: null,
+    timeSlot: null,
+    patientName: '',
+    patientPhone: '',
+    patientEmail: '',
+    notes: '',
+    saveInfo: false,
+  });
+
+  const dentist = demoDentist;
+
+  // Load saved info
+  useEffect(() => {
+    const saved = localStorage.getItem('patientInfo');
+    if (saved) {
+      const info = JSON.parse(saved);
+      setBooking(prev => ({
+        ...prev,
+        patientName: info.name || '',
+        patientPhone: info.phone || '',
+        patientEmail: info.email || '',
+      }));
+    }
+  }, []);
+
+  // Load availability when service selected
+  useEffect(() => {
+    if (booking.service) {
+      // Pre-load availability for current month
+      loadMonthAvailability();
+    }
+  }, [booking.service]);
+
+  // Load time slots when date selected
+  useEffect(() => {
+    if (booking.service && selectedDate) {
+      loadTimeSlots();
+    } else {
+      // Clear slots if service or date is not selected
+      setAvailableSlots([]);
+    }
+  }, [selectedDate, booking.service]);
+
+  const loadMonthAvailability = async () => {
+    if (!dentist || !booking.service) return;
+    
+    // Load availability for next 30 days
+    const today = new Date();
+    for (let i = 0; i < 30; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      
+      try {
+        await api.getAvailableSlots(dentist.id, date);
+      } catch (error) {
+        // Skip on error
+      }
+    }
+    
+  };
+
+  const loadTimeSlots = async () => {
+    if (!selectedDate || !dentist || !booking.service) {
+      setAvailableSlots([]);
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      const slots = await api.getAvailableSlots(dentist.id, selectedDate);
+      
+      if (!slots || slots.length === 0) {
+        setAvailableSlots([]);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Filter slots for weekends and generate mock capacity
+      const day = selectedDate.getDay();
+
+      const filteredSlots = slots.filter(time => {
+        // Sunday (0) is disabled
+        if (day === 0) return false;
+        // Saturday (6) is morning only
+        if (day === 6) {
+          const hour = parseInt(time.split(':')[0]);
+          return hour < 12;
+        }
+        // Other days are fully available
+        return true;
+      });
+
+      const timeSlots: TimeSlot[] = filteredSlots.map(time => {
+        const capacity = Math.floor(Math.random() * 4) + 3; // 3-6 capacity
+        const remaining = Math.floor(Math.random() * capacity) + 1; // At least 1 remaining
+        return {
+          time,
+          capacity,
+          remaining,
+          isAvailable: remaining > 0,
+        };
+      });
+      
+      setAvailableSlots(timeSlots);
+      
+    } catch (error) {
+      console.error('Error loading time slots:', error);
+      setAvailableSlots([]);
+      toast.error('Erreur lors du chargement des créneaux');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const checkSlotAvailability = async (slot: TimeSlot) => {
+    // Simulate API check
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Mock: 90% chance slot is still available
+    const isStillAvailable = Math.random() > 0.1;
+    
+    if (!isStillAvailable) {
+      toast.error('Ce créneau vient d\'être réservé. Voici le prochain disponible à 11:50');
+      return false;
+    }
+    
+    // Lock slot for 60 seconds (optimistic UI)
+    setBooking(prev => ({ ...prev, timeSlot: slot }));
+    setCurrentStep(3);
+    return true;
+  };
+
+  const handleServiceSelect = (service: Service) => {
+    setBooking(prev => ({ ...prev, service }));
+    setCurrentStep(2);
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date);
+    if (date) {
+      setBooking(prev => ({ ...prev, date }));
+    }
+  };
+
+  const handleTimeSlotSelect = async (slot: TimeSlot) => {
+    if (!slot.isAvailable) return;
+    await checkSlotAvailability(slot);
+  };
+
+  const handleSubmit = async () => {
+    if (!booking.service || !booking.date || !booking.timeSlot || !booking.patientName || !booking.patientPhone) {
+      toast.error('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const appointment = await api.bookAppointment({
+        dentistId: dentist.id,
+        serviceId: booking.service.id,
+        date: booking.date.toISOString(),
+        time: booking.timeSlot.time,
+        patientName: booking.patientName,
+        patientPhone: booking.patientPhone,
+        patientEmail: booking.patientEmail || undefined,
+        notes: booking.notes || undefined,
+      });
+
+      // store returned appointment id for later reschedule/cancel
+      setBooking(prev => ({ ...prev, appointmentId: appointment.id }));
+
+      // Save info if requested
+      if (booking.saveInfo) {
+        localStorage.setItem('patientInfo', JSON.stringify({
+          name: booking.patientName,
+          phone: booking.patientPhone,
+          email: booking.patientEmail,
+        }));
+      }
+
+      setShowSuccess(true);
+      setCurrentStep(5);
+      toast.success('Rendez-vous confirmé! Un message a été envoyé à ' + booking.patientPhone);
+    } catch (error) {
+      toast.error('Erreur lors de la réservation');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatPhone = (value: string) => {
+    const cleaned = value.replace(/\D/g, '');
+    if (cleaned.startsWith('212')) {
+      return `+212 ${cleaned.slice(3, 5)} ${cleaned.slice(5, 8)}-${cleaned.slice(8)}`;
+    }
+    return cleaned;
+  };
+
+  const completedSteps = [
+    booking.service ? 1 : 0,
+    booking.timeSlot ? 2 : 0,
+    booking.patientName && booking.patientPhone ? 3 : 0,
+    currentStep >= 4 ? 4 : 0,
+    showSuccess ? 5 : 0,
+  ].filter(Boolean).length;
+
+
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-teal-50/20 relative overflow-hidden">
+      {/* Background Decorations */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-teal-500/10 to-blue-500/10 rounded-full -translate-y-48 translate-x-48"></div>
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-blue-500/10 to-teal-500/10 rounded-full translate-y-40 -translate-x-40"></div>
+      
+      <div className="relative py-8 px-4 lg:px-6">
+        <div className="container mx-auto max-w-screen-xl">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-teal-500 to-blue-600 rounded-2xl mb-4 shadow-xl">
+              <Sparkles className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent mb-2">Réserver un rendez-vous</h1>
+            <p className="text-slate-600 font-medium">Simple, rapide et sans surprises</p>
+          </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+          {/* Left: Dentist Info & Summary */}
+          <div className="md:col-span-1 space-y-8">
+            {/* Dentist Info Card */}
+            <Card className="shadow-xl border-slate-200/50 bg-white/80 backdrop-blur-sm rounded-2xl overflow-hidden">
+              <div className="bg-gradient-to-br from-teal-500 to-blue-600 p-6 text-center">
+                <img
+                  src={dentist.photo}
+                  alt={dentist.name}
+                  className="w-24 h-24 rounded-full mx-auto border-4 border-white shadow-lg"
+                />
+                <div className="flex items-center justify-center gap-4 mt-4">
+                  <img
+                    src="https://www.onlinelogomaker.com/blog/wp-content/uploads/2017/09/Dental-Logo-Design.jpg"
+                    alt="Cabinet logo"
+                    className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md"
+                  />
+                  <h2 className="text-xl font-bold text-white">{dentist.name}</h2>
+                </div>
+                <p className="text-sm text-blue-200">{dentist.specialty}</p>
+              </div>
+              <CardContent className="p-6 space-y-3 bg-white">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Avis</span>
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-5 h-5 ${
+                          i < 4 ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                    <span className="font-semibold ml-2">4.8 (24 avis)</span>
+                  </div>
+                </div>
+                <Button variant="outline" className="w-full">
+                  Voir le profil complet
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Stepper */}
+            <Card className="shadow-lg border-0 sticky top-4">
+              <CardHeader>
+                <CardTitle className="text-lg">Votre réservation</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Steps */}
+                <div className="space-y-4">
+                  {STEPS.map((step) => {
+                    const isCompleted = completedSteps >= step.id;
+                    const isCurrent = currentStep === step.id;
+                    const Icon = step.icon;
+
+                    return (
+                      <button
+                        key={step.id}
+                        onClick={() => {
+                          if (step.id < currentStep) setCurrentStep(step.id);
+                        }}
+                        className="w-full text-left"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={cn(
+                            'flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all',
+                            isCompleted && 'bg-green-500 border-green-500 text-white',
+                            isCurrent && !isCompleted && 'bg-blue-600 border-blue-600 text-white',
+                            !isCurrent && !isCompleted && 'bg-gray-100 border-gray-300 text-gray-400'
+                          )}>
+                            {isCompleted ? (
+                              <Check className="w-5 h-5" />
+                            ) : (
+                              <Icon className="w-5 h-5" />
+                            )}
+                          </div>
+                          <div className="flex-1 pt-2">
+                            <div className={cn(
+                              'font-semibold text-sm',
+                              isCurrent ? 'text-blue-600' : isCompleted ? 'text-gray-900' : 'text-gray-400'
+                            )}>
+                              {step.name}
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="border-t pt-4">
+                  {/* Summary */}
+                  {booking.service && (
+                    <div className="space-y-3">
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">Service</div>
+                        <div className="font-semibold text-sm">{booking.service.name}</div>
+                        <div className="text-xs text-gray-600">{booking.service.price} MAD</div>
+                      </div>
+                      
+                      {booking.date && booking.timeSlot && (
+                        <>
+                          <div>
+                            <div className="text-xs text-gray-500 mb-1">Date & Heure</div>
+                            <div className="font-semibold text-sm">
+                              {format(booking.date, 'EEEE d MMMM', { locale: fr })}
+                            </div>
+                            <div className="text-xs text-gray-600">{booking.timeSlot.time}</div>
+                          </div>
+                          
+                          <div>
+                            <div className="text-xs text-gray-500 mb-1">Total</div>
+                            <div className="font-bold text-lg text-blue-600">{booking.service.price} MAD</div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right: Active Step Content */}
+          <div className="lg:col-span-2">
+            <Card className="shadow-xl border-slate-200/50 bg-white/80 backdrop-blur-sm rounded-2xl min-h-[500px] lg:min-h-[600px]">
+              <CardContent className="p-6 lg:p-8">
+                {/* Back button when not on first step */}
+                {currentStep > 1 && (
+                  <div className="mb-4">
+                    <Button
+                      variant="ghost"
+                      onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
+                      className="px-4 h-10"
+                    >
+                      Retour
+                    </Button>
+                  </div>
+                )}
+                {/* Step 1: Service Selection */}
+                {currentStep === 1 && (
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-slate-900 mb-2">Choisissez un service</h2>
+                      <p className="text-slate-600 font-medium">Sélectionnez le type de consultation dont vous avez besoin</p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {dentist.services.map((service: Service) => (
+                        <button
+                          key={service.id}
+                          onClick={() => handleServiceSelect(service)}
+                          className={cn(
+                            'p-6 rounded-2xl border-2 text-left transition-all hover:shadow-lg',
+                            booking.service?.id === service.id
+                              ? 'border-teal-600 bg-teal-50 shadow-md scale-105'
+                              : 'border-slate-200 hover:border-slate-300 bg-white/80'
+                          )}
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="font-bold text-lg text-slate-900">{service.name}</div>
+                            {service.id === 's1' && (
+                              <Badge className="bg-orange-100 text-orange-700 rounded-full">Populaire</Badge>
+                            )}
+                          </div>
+                          {service.description && (
+                            <div className="text-sm text-slate-600 mb-4">{service.description}</div>
+                          )}
+                          <div className="flex items-center justify-end">
+                            <div className="font-bold text-lg text-teal-600">{service.price} MAD</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 2: Date & Time Selection */}
+                {currentStep === 2 && booking.service && (
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-slate-900 mb-2">Choisissez une date et une heure</h2>
+                      <p className="text-slate-600 font-medium">Sélectionnez une date dans le calendrier, puis choisissez un créneau horaire disponible</p>
+                    </div>
+
+                    {/* Calendar Scheduler */}
+                    <div className="w-full">
+                      <CalendarScheduler
+                        timeSlots={availableSlots.length > 0 ? availableSlots.map(s => s.time) : []}
+                        disabledDates={(date) => {
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          return date < today || date.getDay() === 0; // Disable past dates and Sundays
+                        }}
+                        onDateChange={(date) => {
+                          handleDateSelect(date);
+                        }}
+                        onConfirm={({ date, time }) => {
+                          if (date && time) {
+                            // Update selected date
+                            handleDateSelect(date);
+                            
+                            // Find and select the time slot
+                            const slot = availableSlots.find(s => s.time === time);
+                            if (slot) {
+                              handleTimeSlotSelect(slot);
+                            }
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3: Patient Details */}
+                {currentStep === 3 && (
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-2">Vos informations</h2>
+                      <p className="text-gray-600">Remplissez vos coordonnées pour finaliser la réservation</p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name" className="flex items-center gap-2">
+                          Nom complet *
+                          {booking.patientName && (
+                            <Check className="w-4 h-4 text-green-500" />
+                          )}
+                        </Label>
+                        <Input
+                          id="name"
+                          value={booking.patientName}
+                          onChange={(e) => setBooking(prev => ({ ...prev, patientName: e.target.value }))}
+                          className="rounded-xl h-12"
+                          placeholder="Votre nom"
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="phone" className="flex items-center gap-2">
+                          Téléphone *
+                          {booking.patientPhone && (
+                            <Check className="w-4 h-4 text-green-500" />
+                          )}
+                        </Label>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          value={booking.patientPhone}
+                          onChange={(e) => {
+                            const formatted = formatPhone(e.target.value);
+                            setBooking(prev => ({ ...prev, patientPhone: formatted }));
+                          }}
+                          className="rounded-xl h-12"
+                          placeholder="+212 6 12 34 56 78"
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="email" className="flex items-center gap-2">
+                          Email (optionnel)
+                          {booking.patientEmail && (
+                            <Check className="w-4 h-4 text-green-500" />
+                          )}
+                        </Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={booking.patientEmail}
+                          onChange={(e) => setBooking(prev => ({ ...prev, patientEmail: e.target.value }))}
+                          className="rounded-xl h-12"
+                          placeholder="votre@email.com"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="notes">Notes (optionnel)</Label>
+                        <Textarea
+                          id="notes"
+                          value={booking.notes}
+                          onChange={(e) => setBooking(prev => ({ ...prev, notes: e.target.value }))}
+                          className="rounded-xl"
+                          placeholder="Informations supplémentaires..."
+                          rows={3}
+                        />
+                      </div>
+
+                      <div className="flex items-center space-x-2 pt-2">
+                        <Checkbox
+                          id="saveInfo"
+                          checked={booking.saveInfo}
+                          onCheckedChange={(checked) =>
+                            setBooking(prev => ({ ...prev, saveInfo: checked as boolean }))
+                          }
+                        />
+                        <Label htmlFor="saveInfo" className="text-sm text-gray-600 cursor-pointer">
+                          Enregistrer mes informations pour la prochaine fois
+                        </Label>
+                      </div>
+
+                      <Button
+                        onClick={() => {
+                          if (booking.patientName && booking.patientPhone) {
+                            setCurrentStep(4);
+                          } else {
+                            toast.error('Veuillez remplir tous les champs obligatoires');
+                          }
+                        }}
+                        className="w-full rounded-xl bg-blue-600 hover:bg-blue-700 h-12 text-base"
+                        disabled={!booking.patientName || !booking.patientPhone}
+                      >
+                        Continuer vers la confirmation
+                        <ChevronRight className="ml-2 h-5 w-5" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 4: Confirmation */}
+                {currentStep === 4 && (
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-2">Confirmer votre réservation</h2>
+                      <p className="text-gray-600">Vérifiez les détails avant de confirmer</p>
+                    </div>
+
+                    <Card className="bg-gray-50 border-2 border-gray-200">
+                      <CardContent className="p-6 space-y-4">
+                        {booking.service && (
+                          <div>
+                            <div className="text-sm text-gray-500 mb-1">Service</div>
+                            <div className="font-semibold">{booking.service.name}</div>
+                            <div className="text-sm text-gray-600">{booking.service.price} MAD</div>
+                          </div>
+                        )}
+                        
+                        {booking.date && booking.timeSlot && (
+                          <div>
+                            <div className="text-sm text-gray-500 mb-1">Date & Heure</div>
+                            <div className="font-semibold">
+                              {format(booking.date, 'EEEE d MMMM yyyy', { locale: fr })} à {booking.timeSlot.time}
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div>
+                          <div className="text-sm text-gray-500 mb-1">Patient</div>
+                          <div className="font-semibold">{booking.patientName}</div>
+                          <div className="text-sm text-gray-600">{booking.patientPhone}</div>
+                        </div>
+                        
+                        <div className="pt-4 border-t">
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold text-lg">Total</span>
+                            <span className="font-bold text-2xl text-blue-600">
+                              {booking.service?.price} MAD
+                            </span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Button
+                      onClick={handleSubmit}
+                      disabled={isLoading}
+                      className="w-full rounded-xl bg-blue-600 hover:bg-blue-700 h-14 text-base font-semibold"
+                    >
+                      {isLoading ? 'Confirmation...' : 'Confirmer la réservation'}
+                    </Button>
+                  </div>
+                )}
+
+                {/* Step 5: Success */}
+                {currentStep === 5 && showSuccess && booking.appointmentId && (
+                  <div className="space-y-6">
+                    {/* Success Header */}
+                    <div className="text-center mb-8">
+                      <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 text-green-600 rounded-full mb-4 animate-bounce">
+                        <CheckCircle2 className="w-10 h-10" />
+                      </div>
+                      <h2 className="text-3xl font-bold text-gray-900 mb-2">Rendez-vous confirmé!</h2>
+                      <p className="text-gray-600">Merci de votre confiance</p>
+                    </div>
+
+                    {/* Appointment ID Card */}
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6">
+                      <div className="text-center">
+                        <div className="text-sm text-green-600 font-semibold mb-2">Numéro de rendez-vous</div>
+                        <div className="text-4xl font-bold text-green-900 font-mono mb-3">{booking.appointmentId}</div>
+                        <p className="text-xs text-green-600">Conservez ce numéro pour toute modification ou annulation</p>
+                      </div>
+                    </div>
+
+                    {/* Summary */}
+                    <div className="space-y-4 bg-gray-50 rounded-xl p-6">
+                      {booking.service && (
+                        <div className="flex justify-between items-start pb-4 border-b">
+                          <div>
+                            <div className="text-xs text-gray-500 mb-1 font-semibold">SERVICE</div>
+                            <div className="font-semibold text-gray-900">{booking.service.name}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-bold text-lg text-blue-600">{booking.service.price} MAD</div>
+                          </div>
+                        </div>
+                      )}
+
+                      {booking.date && booking.timeSlot && (
+                        <div className="flex justify-between items-start pb-4 border-b">
+                          <div>
+                            <div className="text-xs text-gray-500 mb-1 font-semibold">DATE & HEURE</div>
+                            <div className="font-semibold text-gray-900">
+                              {format(booking.date, 'EEEE d MMMM yyyy', { locale: fr })}
+                            </div>
+                            <div className="text-sm font-semibold text-blue-600 mt-1">{booking.timeSlot.time}</div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="text-xs text-gray-500 mb-1 font-semibold">PATIENT</div>
+                          <div className="font-semibold text-gray-900">{booking.patientName}</div>
+                          <div className="text-xs text-gray-600">{booking.patientPhone}</div>
+                          {booking.patientEmail && (
+                            <div className="text-xs text-gray-600">{booking.patientEmail}</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="space-y-3 pt-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (!booking.date || !booking.timeSlot || !booking.service) return;
+
+                          // Create Google Calendar link with event details pre-filled
+                          const startDateTime = new Date(`${format(booking.date, 'yyyy-MM-dd')}T${booking.timeSlot.time}`);
+                          const endDateTime = new Date(startDateTime.getTime() + 60 * 60000); // Default 60 minutes
+
+                          // Format dates for Google Calendar
+                          const formatGoogleDate = (date: Date) => {
+                            return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+                          };
+
+                          const eventTitle = `${booking.service.name} - ${dentist.name}`;
+                          const eventDescription = `Service: ${booking.service.name}\nPatient: ${booking.patientName}\nTéléphone: ${booking.patientPhone}${booking.patientEmail ? `\nEmail: ${booking.patientEmail}` : ''}${booking.notes ? `\nNotes: ${booking.notes}` : ''}`;
+                          const eventLocation = `${dentist.address}, ${dentist.city}`;
+
+                          const googleCalendarUrl = `https://calendar.google.com/calendar/u/0/r/eventedit?text=${encodeURIComponent(eventTitle)}&dates=${formatGoogleDate(startDateTime)}/${formatGoogleDate(endDateTime)}&details=${encodeURIComponent(eventDescription)}&location=${encodeURIComponent(eventLocation)}`;
+
+                          window.open(googleCalendarUrl, '_blank');
+                        }}
+                        className="w-full rounded-xl h-12"
+                      >
+                        <CalendarIcon className="mr-2 h-5 w-5" />
+                        Ajouter au Google Calendar
+                      </Button>
+
+                      <Button
+                        onClick={() => {
+                          // Reschedule: go back to date/time step
+                          setShowSuccess(false);
+                          setCurrentStep(2);
+                          setBooking(prev => ({ ...prev, date: null, timeSlot: null }));
+                          setSelectedDate(undefined);
+                          toast('Vous pouvez choisir une nouvelle date et un créneau', { icon: '⏰' });
+                        }}
+                        className="w-full rounded-xl h-12 bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700"
+                      >
+                        Replanifier ce rendez-vous
+                      </Button>
+
+                      <Button
+                        variant="destructive"
+                        onClick={async () => {
+                          if (!booking.appointmentId) {
+                            toast.error('Aucun ID de rendez-vous disponible');
+                            return;
+                          }
+                          try {
+                            await api.deleteAppointment(booking.appointmentId, dentist.id);
+                            setShowSuccess(false);
+                            toast.success('Rendez-vous annulé');
+                            // Reset to beginning
+                            setCurrentStep(1);
+                            setBooking({
+                              service: null,
+                              date: null,
+                              timeSlot: null,
+                              patientName: booking.patientName,
+                              patientPhone: booking.patientPhone,
+                              patientEmail: booking.patientEmail,
+                              notes: '',
+                              saveInfo: booking.saveInfo,
+                              appointmentId: null,
+                            });
+                          } catch (err) {
+                            toast.error('Erreur lors de l\'annulation');
+                          }
+                        }}
+                        className="w-full rounded-xl h-12"
+                      >
+                        Annuler ce rendez-vous
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  );
+}
