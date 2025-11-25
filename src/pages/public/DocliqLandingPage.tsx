@@ -1383,11 +1383,14 @@ export default function DocliqLandingPage() {
       {/* Demo Selection Popup */}
       {isDemoModalOpen && (
         <>
-          <div 
-            className="fixed inset-0 z-[9999] bg-transparent" 
+          {/* Overlay noir semi-transparent pour focus UX */}
+          <div
+            className="fixed inset-0 z-[9999] bg-black/60 transition-opacity duration-300"
             onClick={closeDemoModal}
+            aria-label="Fermer le modal"
+            role="presentation"
           />
-          <div 
+          <div
             className="fixed z-[10000] bg-white rounded-xl shadow-2xl border border-gray-200 p-6"
             style={{
               left: `${modalPosition.x}px`,
