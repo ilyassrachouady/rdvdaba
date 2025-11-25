@@ -37,7 +37,6 @@ export default function DocliqLandingPage() {
   const [revenueCount] = useState(89750);
   const [isInView, setIsInView] = useState<{[key: string]: boolean}>({});
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
-  const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
   const sectionRefs = useRef<{[key: string]: HTMLElement | null}>({});
 
   // Auto-advance demo steps
@@ -123,6 +122,42 @@ export default function DocliqLandingPage() {
 
 
   return (
+          {/* Nouveau modal universel moderne et compact */}
+          {isDemoModalOpen && (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+              <div
+                className="absolute inset-0 bg-black/60 transition-opacity duration-300"
+                onClick={closeDemoModal}
+                aria-label="Fermer le modal"
+                role="presentation"
+              />
+              <div className="relative z-10 bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 w-full max-w-xs sm:max-w-sm mx-auto flex flex-col items-center animate-fade-in">
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2 text-center">Choisissez votre démo</h3>
+                <p className="text-slate-600 text-sm mb-6 text-center">Quel aspect souhaitez-vous découvrir ?</p>
+                <div className="w-full flex flex-col gap-4">
+                  <button
+                    onClick={navigateToDashboardDemo}
+                    className="w-full flex flex-col items-start bg-gradient-to-r from-docliq-blue to-docliq-purple hover:from-docliq-blue/90 hover:to-docliq-purple/90 text-white p-4 rounded-xl font-semibold shadow-lg transition-all duration-200 hover:scale-[1.03]"
+                  >
+                    <span className="text-base sm:text-lg font-bold">Tableau de bord médecin</span>
+                    <span className="text-xs sm:text-sm text-blue-100">Gestion des patients, agenda</span>
+                  </button>
+                  <button
+                    onClick={navigateToBookingDemo}
+                    className="w-full flex flex-col items-start bg-white hover:bg-slate-50 border border-slate-200 hover:border-docliq-blue/30 text-slate-700 hover:text-docliq-blue p-4 rounded-xl font-semibold shadow-md transition-all duration-200 hover:scale-[1.03]"
+                  >
+                    <span className="text-base sm:text-lg font-bold">Prise de rendez-vous</span>
+                    <span className="text-xs sm:text-sm text-slate-500">Expérience patient</span>
+                  </button>
+                </div>
+                <button
+                  onClick={closeDemoModal}
+                  className="mt-6 text-xs text-slate-400 hover:text-docliq-blue transition-colors"
+                  aria-label="Fermer"
+                >Fermer</button>
+              </div>
+            </div>
+          )}
     <div className="min-h-screen bg-gradient-to-br from-docliq-neutral via-white to-slate-50">
       {/* Responsive Modern Navigation */}
       <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-2xl border-b border-white/20 shadow-sm" role="navigation" aria-label="Navigation principale">
@@ -1380,65 +1415,6 @@ export default function DocliqLandingPage() {
 
       </main>
 
-      {/* Demo Selection Popup */}
-      {isDemoModalOpen && (
-        <>
-          {/* Overlay noir semi-transparent pour focus UX */}
-          <div
-            className="fixed inset-0 z-[9999] bg-black/60 transition-opacity duration-300"
-            onClick={closeDemoModal}
-            aria-label="Fermer le modal"
-            role="presentation"
-          />
-          <div
-            className="fixed z-[10000] bg-white rounded-xl shadow-2xl border border-gray-200 p-6"
-            style={{
-              left: `${modalPosition.x}px`,
-              top: `${modalPosition.y}px`,
-              width: "350px",
-              minHeight: "240px",
-              transition: "top 0.2s ease, left 0.2s ease"
-            }}
-          >
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-bold text-slate-900 mb-2">
-                Choisissez votre démo
-              </h3>
-              <p className="text-slate-600 text-sm">
-                Quel aspect souhaitez-vous découvrir ?
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <button
-                onClick={navigateToDashboardDemo}
-                className="w-full group bg-gradient-to-r from-docliq-blue to-docliq-purple hover:from-docliq-blue/90 hover:to-docliq-purple/90 text-white p-4 rounded-lg transition-all duration-200 hover:scale-[1.02] shadow-lg"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="text-left">
-                    <h4 className="text-base font-semibold mb-1">Tableau de bord médecin</h4>
-                    <p className="text-blue-100 text-xs">Gestion des patients, agenda</p>
-                  </div>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </button>
-
-              <button
-                onClick={navigateToBookingDemo}
-                className="w-full group bg-white hover:bg-slate-50 border border-slate-200 hover:border-docliq-blue/30 text-slate-700 hover:text-docliq-blue p-4 rounded-lg transition-all duration-200 hover:scale-[1.02] shadow-md"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="text-left">
-                    <h4 className="text-base font-semibold mb-1">Prise de rendez-vous</h4>
-                    <p className="text-slate-500 text-xs">Expérience patient</p>
-                  </div>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </button>
-            </div>
-          </div>
-        </>
-      )}
 
       {/* Responsive Dark Footer */}
       <footer className="relative py-12 sm:py-14 lg:py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-950 via-slate-950 to-black text-white overflow-hidden" role="contentinfo">
