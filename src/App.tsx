@@ -8,6 +8,8 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import BookingPage from './pages/public/BookingPage';
 import BookingWizard from './pages/public/BookingWizard';
 import EnhancedBookingDemo from './pages/public/EnhancedBookingDemo';
+import LandingPage from './pages/public/LandingPage';
+import DocliqLandingPage from './pages/public/DocliqLandingPage';
 import DashboardLayout from './layouts/DashboardLayout';
 import DashboardHome from './pages/dashboard/DashboardHome';
 import PatientsPage from './pages/dashboard/PatientsPage';
@@ -43,6 +45,9 @@ function AppRoutes() {
   return (
     <Routes>
       {/* Public Routes */}
+      <Route path="/" element={<DocliqLandingPage />} />
+      <Route path="/docliq" element={<DocliqLandingPage />} />
+      <Route path="/old-landing" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -69,9 +74,8 @@ function AppRoutes() {
         <Route path="settings" element={<SettingsPage />} />
       </Route>
 
-      {/* Default redirect - redirect to login if not authenticated */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      {/* Fallback route */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

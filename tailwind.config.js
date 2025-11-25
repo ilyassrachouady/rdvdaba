@@ -15,6 +15,15 @@ export default {
         sm: 'calc(var(--radius) - 4px)',
       },
       colors: {
+        // Docliq Brand Colors
+        'docliq-blue': '#3A7AFE',
+        'docliq-turquoise': '#2AB8A6', 
+        'docliq-purple': '#7460EE',
+        'docliq-neutral': '#F5F7FA',
+        'docliq-text': '#445066',
+        'docliq-success': '#3BB587',
+        'docliq-orange': '#FF9F45',
+        
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
