@@ -16,9 +16,6 @@ import {
   BarChart3,
   X,
   Globe,
-  User,
-  CreditCard,
-  Settings,
   Star,
   Play,
   Eye,
@@ -34,7 +31,6 @@ export default function DocliqLandingPage() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [patientCount] = useState(1247);
-  const [revenueCount] = useState(89750);
   const [isInView, setIsInView] = useState<{[key: string]: boolean}>({});
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const sectionRefs = useRef<{[key: string]: HTMLElement | null}>({});
@@ -72,36 +68,19 @@ export default function DocliqLandingPage() {
   }, []);
 
   // Demo modal handlers
-  const openDemoModal = (event) => {
+  const openDemoModal = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
-    
     const button = event.currentTarget;
     const rect = button.getBoundingClientRect();
-    
+
     // Calculate position relative to viewport (for fixed modal)
-    // Add some offset so the modal doesn't overlap the button
+    // Add some offset so the modal doesn’t overlap the button
     const modalWidth = 350; // match your modal width
-    const modalHeight = 240; // estimated modal height
-    
-    // Position to the right of the button, but ensure it stays within viewport
-    let popupX = Math.min(rect.left + rect.width + 15, window.innerWidth - modalWidth - 20);
-    
-    // Center vertically relative to button, but ensure it stays within viewport
-    let popupY = Math.min(rect.top, window.innerHeight - modalHeight - 20);
-    
-    // If modal would be too far left, position it to the left of the button instead
-    if (popupX < 20) {
-      popupX = Math.max(rect.left - modalWidth - 15, 20);
-    }
-    
-    // Ensure minimum distance from top
-    popupY = Math.max(popupY, 20);
-    
-    setModalPosition({ 
-      x: popupX, 
-      y: popupY 
-    });
+    const popupX = Math.min(rect.left + rect.width + 15, window.innerWidth - modalWidth - 20);
+    const popupY = Math.min(rect.top, window.innerHeight - 260); // modal height ≈ 240
+
+    setModalPosition({ x: popupX, y: popupY });
     setIsDemoModalOpen(true);
   };
   const closeDemoModal = () => setIsDemoModalOpen(false);
@@ -116,7 +95,7 @@ export default function DocliqLandingPage() {
     closeDemoModal();
   };
 
-  const handleDemo = useCallback((event) => {
+  const handleDemo = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     openDemoModal(event);
   }, []);
 
@@ -1229,7 +1208,7 @@ export default function DocliqLandingPage() {
                   
                   {/* Trust - responsive */}
                   <p className="text-center text-[10px] sm:text-xs text-docliq-text/60">
-                    ✓ 30 jours gratuits • ✓ Support inclus • ✓ Données sécurisées
+                    ✓ 7 jours gratuits • ✓ Support inclus • ✓ Données sécurisées
                   </p>
                 </div>
 
@@ -1237,7 +1216,7 @@ export default function DocliqLandingPage() {
                 <div className="bg-gradient-to-r from-docliq-orange/5 to-yellow-50 px-3 sm:px-4 py-1.5 sm:py-2 border-t border-docliq-orange/10">
                   <div className="flex items-center justify-center space-x-1 sm:space-x-2 text-docliq-orange text-[10px] sm:text-xs">
                     <Clock className="w-2.5 sm:w-3 h-2.5 sm:h-3" />
-                    <span className="font-medium">Offre jusqu'au 31 décembre 2024</span>
+                    <span className="font-medium">Offre jusqu'au 31 décembre 2025</span>
                   </div>
                 </div>
               </div>
@@ -1471,7 +1450,7 @@ export default function DocliqLandingPage() {
           <div className="flex flex-col lg:flex-row justify-between items-center space-y-4 lg:space-y-0">
             <div className="text-center lg:text-left">
               <p className="text-gray-400 font-medium text-base sm:text-lg">
-                © 2024 Docliq. Plateforme de gestion médicale
+                © 2025 Docliq. Plateforme de gestion médicale
               </p>
               <p className="text-gray-500 text-sm sm:text-base mt-1">
                 Conçue pour tous les professionnels de santé au Maroc
