@@ -25,7 +25,7 @@ export default function FooterSEO() {
             <ul className="space-y-2.5">
               <li>
                 <Link 
-                  to="/logiciel-dentiste-maroc" 
+                  to="/dentiste-maroc"
                   className="text-sm text-[#4A4A4A] hover:text-docliq-blue transition-colors duration-200 hover:underline"
                 >
                   Logiciel pour dentistes
@@ -33,7 +33,7 @@ export default function FooterSEO() {
               </li>
               <li>
                 <Link 
-                  to="/logiciel-medecin-generaliste-maroc" 
+                  to="/medecin-generaliste-maroc"
                   className="text-sm text-[#4A4A4A] hover:text-docliq-blue transition-colors duration-200 hover:underline"
                 >
                   Logiciel médecin généraliste
@@ -41,7 +41,7 @@ export default function FooterSEO() {
               </li>
               <li>
                 <Link 
-                  to="/logiciel-dermatologue-maroc" 
+                  to="/dermatologue-maroc"
                   className="text-sm text-[#4A4A4A] hover:text-docliq-blue transition-colors duration-200 hover:underline"
                 >
                   Logiciel dermatologue
@@ -49,7 +49,7 @@ export default function FooterSEO() {
               </li>
               <li>
                 <Link 
-                  to="/logiciel-cardiologue-maroc" 
+                  to="/cardiologue-maroc"
                   className="text-sm text-[#4A4A4A] hover:text-docliq-blue transition-colors duration-200 hover:underline"
                 >
                   Logiciel cardiologue
@@ -57,7 +57,7 @@ export default function FooterSEO() {
               </li>
               <li>
                 <Link 
-                  to="/logiciel-pediatre-maroc" 
+                  to="/pediatre-maroc"
                   className="text-sm text-[#4A4A4A] hover:text-docliq-blue transition-colors duration-200 hover:underline"
                 >
                   Logiciel pédiatre
@@ -65,7 +65,7 @@ export default function FooterSEO() {
               </li>
               <li>
                 <Link 
-                  to="/logiciel-kinesitherapeute-maroc" 
+                  to="/kinesitherapeute-maroc"
                   className="text-sm text-[#4A4A4A] hover:text-docliq-blue transition-colors duration-200 hover:underline"
                 >
                   Logiciel kinésithérapeute
@@ -73,7 +73,7 @@ export default function FooterSEO() {
               </li>
               <li>
                 <Link 
-                  to="/logiciel-ophtalmologue-maroc" 
+                  to="/ophtalmologue-maroc"
                   className="text-sm text-[#4A4A4A] hover:text-docliq-blue transition-colors duration-200 hover:underline"
                 >
                   Logiciel ophtalmologue
@@ -90,7 +90,7 @@ export default function FooterSEO() {
             <ul className="space-y-2.5">
               <li>
                 <Link 
-                  to="/prise-rendez-vous-en-ligne-maroc" 
+                  to="/prise-rendez-vous-medical-en-ligne"
                   className="text-sm text-[#4A4A4A] hover:text-docliq-blue transition-colors duration-200 hover:underline"
                 >
                   Prise de rendez-vous en ligne
@@ -106,7 +106,7 @@ export default function FooterSEO() {
               </li>
               <li>
                 <Link 
-                  to="/dossiers-patients-securises-maroc" 
+                  to="/dossiers-patients-securises-cloud"
                   className="text-sm text-[#4A4A4A] hover:text-docliq-blue transition-colors duration-200 hover:underline"
                 >
                   Dossiers patients sécurisés
@@ -147,7 +147,7 @@ export default function FooterSEO() {
             <ul className="space-y-2.5">
               <li>
                 <Link 
-                  to="/logiciel-cabinet-medical-casablanca" 
+                  to="/logiciel-medical-casablanca"
                   className="text-sm text-[#4A4A4A] hover:text-docliq-blue transition-colors duration-200 hover:underline"
                 >
                   Logiciel médical Casablanca
@@ -155,7 +155,7 @@ export default function FooterSEO() {
               </li>
               <li>
                 <Link 
-                  to="/logiciel-cabinet-medical-rabat" 
+                  to="/logiciel-medical-rabat"
                   className="text-sm text-[#4A4A4A] hover:text-docliq-blue transition-colors duration-200 hover:underline"
                 >
                   Logiciel médical Rabat
@@ -163,7 +163,7 @@ export default function FooterSEO() {
               </li>
               <li>
                 <Link 
-                  to="/logiciel-cabinet-medical-marrakech" 
+                  to="/logiciel-medical-marrakech"
                   className="text-sm text-[#4A4A4A] hover:text-docliq-blue transition-colors duration-200 hover:underline"
                 >
                   Logiciel médical Marrakech
@@ -171,7 +171,7 @@ export default function FooterSEO() {
               </li>
               <li>
                 <Link 
-                  to="/logiciel-medecin-tanger-agadir" 
+                  to="/logiciel-medical-tanger"
                   className="text-sm text-[#4A4A4A] hover:text-docliq-blue transition-colors duration-200 hover:underline"
                 >
                   Logiciel médical Tanger
