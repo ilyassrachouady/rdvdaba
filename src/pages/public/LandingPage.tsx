@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DemoPopup } from '@/components/ui/demo-popup';
 import { 
   Calendar,
   FileText,
@@ -42,6 +43,15 @@ import {
 
 export default function LandingPage() {
   const navigate = useNavigate();
+
+  // Navigation handlers for demo popup
+  const handleDashboardDemo = useCallback(() => {
+    navigate('/dashboard');
+  }, [navigate]);
+
+  const handleBookingDemo = useCallback(() => {
+    navigate('/booking-wizard');
+  }, [navigate]);
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
@@ -93,13 +103,14 @@ export default function LandingPage() {
               <span className="text-xl font-semibold text-gray-900">Docliq</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
-                onClick={() => navigate('/demo')}
-                className="text-[#445066] hover:text-[#3A7AFE]"
-              >
-                Voir la démo
-              </Button>
+              <DemoPopup onDashboardClick={handleDashboardDemo} onBookingClick={handleBookingDemo}>
+                <Button 
+                  variant="ghost" 
+                  className="text-[#445066] hover:text-[#3A7AFE]"
+                >
+                  Voir la démo
+                </Button>
+              </DemoPopup>
               <Button 
                 onClick={() => navigate('/login')}
                 className="bg-[#3A7AFE] hover:bg-[#3A7AFE]/90 text-white"
@@ -141,7 +152,7 @@ export default function LandingPage() {
                   </span>
                 </h1>
                 
-                <p className="text-xl text-[#445066] leading-relaxed max-w-2xl">
+                <p className="text-xl text-[#4A4A4A] leading-relaxed max-w-2xl">
                   Libérez-vous de la paperasse. Gérez patients, rendez-vous et facturation 
                   en quelques clics. Interface moderne, sécurisée et adaptée aux praticiens marocains.
                 </p>
@@ -218,19 +229,19 @@ export default function LandingPage() {
                       <div className="text-2xl font-bold text-[#3A7AFE]">
                         {dashboardStats.appointments}
                       </div>
-                      <div className="text-xs text-[#445066] mt-1">RDV ce mois</div>
+                      <div className="text-sm text-[#6A6A6A] mt-1 font-medium">RDV ce mois</div>
                     </div>
                     <div className="text-center p-4 bg-gradient-to-br from-[#2AB8A6]/5 to-[#2AB8A6]/10 rounded-2xl">
                       <div className="text-2xl font-bold text-[#2AB8A6]">
                         {dashboardStats.patients}
                       </div>
-                      <div className="text-xs text-[#445066] mt-1">Patients</div>
+                      <div className="text-sm text-[#6A6A6A] mt-1 font-medium">Patients</div>
                     </div>
                     <div className="text-center p-4 bg-gradient-to-br from-[#3BB587]/5 to-[#3BB587]/10 rounded-2xl">
                       <div className="text-2xl font-bold text-[#3BB587]">
                         {(dashboardStats.revenue / 1000).toFixed(0)}k
                       </div>
-                      <div className="text-xs text-[#445066] mt-1">MAD</div>
+                      <div className="text-sm text-[#6A6A6A] mt-1 font-medium">MAD</div>
                     </div>
                   </div>
                   
@@ -241,7 +252,7 @@ export default function LandingPage() {
                         <div className="w-8 h-8 bg-[#3A7AFE]/10 rounded-lg flex items-center justify-center">
                           <UserPlus className="w-4 h-4 text-[#3A7AFE]" />
                         </div>
-                        <span className="text-sm font-medium text-gray-900">Nouveau patient</span>
+                        <span className="text-sm font-medium text-[#1C1C1C]">Nouveau patient</span>
                       </div>
                       <ChevronRight className="w-4 h-4 text-[#445066]" />
                     </div>
@@ -560,14 +571,15 @@ export default function LandingPage() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 pt-6">
-                <Button 
-                  size="lg"
-                  onClick={() => navigate('/demo')}
-                  className="group bg-gradient-to-r from-[#3A7AFE] to-[#7460EE] hover:from-[#3A7AFE]/90 hover:to-[#7460EE]/90 text-white px-10 py-6 text-lg rounded-2xl shadow-xl transform hover:scale-105 transition-all duration-200"
-                >
-                  <Play className="mr-3 w-5 h-5 group-hover:scale-110 transition-transform" />
-                  Essayer la démo complète
-                </Button>
+                <DemoPopup onDashboardClick={handleDashboardDemo} onBookingClick={handleBookingDemo}>
+                  <Button 
+                    size="lg"
+                    className="group bg-gradient-to-r from-[#3A7AFE] to-[#7460EE] hover:from-[#3A7AFE]/90 hover:to-[#7460EE]/90 text-white px-10 py-6 text-lg rounded-2xl shadow-xl transform hover:scale-105 transition-all duration-200"
+                  >
+                    <Play className="mr-3 w-5 h-5 group-hover:scale-110 transition-transform" />
+                    Essayer la démo complète
+                  </Button>
+                </DemoPopup>
                 <Button 
                   size="lg" 
                   variant="outline"
@@ -922,7 +934,7 @@ export default function LandingPage() {
                               </div>
                               <div className="text-right">
                                 <div className="text-sm text-[#445066]">Aujourd'hui</div>
-                                <div className="text-lg font-semibold text-gray-900">Mardi 16 Mars 2024</div>
+                                <div className="text-lg font-semibold text-gray-900">Mardi 16 Mars 2025</div>
                               </div>
                             </div>
                           </div>
@@ -1074,14 +1086,16 @@ export default function LandingPage() {
                   <Zap className="mr-3 w-5 h-5" />
                   Commencer l'essai gratuit
                 </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline"
-                  className="border-2 border-[#7460EE]/30 text-[#7460EE] hover:bg-[#7460EE]/5 hover:border-[#7460EE] px-10 py-4 text-lg rounded-2xl"
-                >
-                  Demander une démo personnalisée
-                  <ArrowRight className="ml-3 w-5 h-5" />
-                </Button>
+                <DemoPopup onDashboardClick={handleDashboardDemo} onBookingClick={handleBookingDemo}>
+                  <Button 
+                    size="lg" 
+                    variant="outline"
+                    className="border-2 border-[#7460EE]/30 text-[#7460EE] hover:bg-[#7460EE]/5 hover:border-[#7460EE] px-10 py-4 text-lg rounded-2xl"
+                  >
+                    Demander une démo personnalisée
+                    <ArrowRight className="ml-3 w-5 h-5" />
+                  </Button>
+                </DemoPopup>
               </div>
             </div>
           </div>
@@ -1438,7 +1452,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Docliq. Tous droits réservés.</p>
+            <p>&copy; 2025 Docliq. Tous droits réservés.</p>
           </div>
         </div>
       </footer>

@@ -17,6 +17,24 @@ import AppointmentsPage from './pages/dashboard/AppointmentsPage';
 import BillingPage from './pages/dashboard/BillingPage';
 import SettingsPage from './pages/dashboard/SettingsPage';
 import PatientProfilePage from './pages/dashboard/PatientProfilePage';
+
+// SEO Landing Pages
+import DentistePage from './pages/public/seo/DentistePage';
+import MedecinGeneralistePage from './pages/public/seo/MedecinGeneralistePage';
+import CardiologuePage from './pages/public/seo/CardiologuePage';
+import DermatologuePage from './pages/public/seo/DermatologuePage';
+import PediatrePage from './pages/public/seo/PediatrePage';
+import OphtalmologuePage from './pages/public/seo/OphtalmologuePage';
+import KinesitherapeutePage from './pages/public/seo/KinesitherapeutePage';
+import PriseRendezVousPage from './pages/public/seo/PriseRendezVousPage';
+import DossiersSecurisesPage from './pages/public/seo/DossiersSecurisesPage';
+import AgendaMedicalPage from './pages/public/seo/AgendaMedicalPage';
+import ApplicationMedicoPage from './pages/public/seo/ApplicationMedicoPage';
+import CasablancaPage from './pages/public/seo/CasablancaPage';
+import RabatPage from './pages/public/seo/RabatPage';
+import MarrakechPage from './pages/public/seo/MarrakechPage';
+import TangerPage from './pages/public/seo/TangerPage';
+
 import './App.css';
 
 // Protected Route Component
@@ -56,6 +74,24 @@ function AppRoutes() {
       <Route path="/demo-old" element={<BookingWizard />} />
       <Route path="/book" element={<BookingWizard />} />
       <Route path="/wizard" element={<BookingWizard />} />
+      <Route path="/booking-wizard" element={<BookingWizard />} />
+
+      {/* SEO Landing Pages */}
+      <Route path="/dentiste-maroc" element={<DentistePage />} />
+      <Route path="/medecin-generaliste-maroc" element={<MedecinGeneralistePage />} />
+      <Route path="/cardiologue-maroc" element={<CardiologuePage />} />
+      <Route path="/dermatologue-maroc" element={<DermatologuePage />} />
+      <Route path="/pediatre-maroc" element={<PediatrePage />} />
+      <Route path="/ophtalmologue-maroc" element={<OphtalmologuePage />} />
+      <Route path="/kinesitherapeute-maroc" element={<KinesitherapeutePage />} />
+      <Route path="/prise-rendez-vous-medical-en-ligne" element={<PriseRendezVousPage />} />
+      <Route path="/dossiers-patients-securises-cloud" element={<DossiersSecurisesPage />} />
+      <Route path="/agenda-medical-intelligent-cloud" element={<AgendaMedicalPage />} />
+      <Route path="/application-medico-administrative-maroc" element={<ApplicationMedicoPage />} />
+      <Route path="/logiciel-medical-casablanca" element={<CasablancaPage />} />
+      <Route path="/logiciel-medical-rabat" element={<RabatPage />} />
+      <Route path="/logiciel-medical-marrakech" element={<MarrakechPage />} />
+      <Route path="/logiciel-medical-tanger" element={<TangerPage />} />
 
       {/* Protected Dashboard Routes */}
       <Route
